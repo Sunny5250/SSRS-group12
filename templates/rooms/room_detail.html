@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load room_filters %}
+
+{% block title %}{{ room.name }} - 自习室详情{% endblock %}
+
+{% block extra_css %}
+<style>
+    .room-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        margin-bottom: 30px;
+    }
+    
+    .room-image {
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .info-card {
+        background: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .equipment-tag {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 5px 10px;
+        margin: 2px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+    }
+    
+    .time-slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .time-slot-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .time-slot-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .time-slot-available {
+        background: #d4edda;
+        border-color: #c3e6cb;
+    }
+    
+    .time-slot-booked {
+        background: #f8d7da;
+        border-color: #f5c6cb;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 房间信息头部 -->
+<div class="room-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-door-open"></i> {{ room.name }}
+                </h1>
+                <p class="lead mb-3">{{ room.description }}</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <span class="badge bg-light text-dark fs-6">
+                        <i class="fas fa-map-marker-alt text-danger"></i> {{ room.location }}
+                    </span>
+                    <span class="badge bg-light text-dark fs-6">
+                        <i class="fas fa-users text-primary"></i> 容量: {{ room.capacity }}人
+                    </span>
+                    <span class="badge bg-light text-dark fs-6">
+                        <i class="fas fa-calendar text-success"></i> 创建于: {{ room.created_at|date:"Y年m月d日" }}
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <a href="{% url 'bookings:booking_create' room.pk %}" class="btn btn-warning btn-lg">
+                    <i class="fas fa-calendar-plus"></i> 立即预约
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- 左侧：房间详细信息 -->
+        <div class="col-lg-8">
+            <!-- 房间图片 -->
+            {% if room.image %}
+            <div class="mb-4">
+                <img src="{{ room.image.url }}" alt="{{ room.name }}" class="img-fluid room-image w-100">
+            </div>
+            {% endif %}
+            
+            <!-- 房间基本信息 -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> 基本信息</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h6><i class="fas fa-door-open text-primary"></i> 房间名称</h6>
+                                <p class="mb-0">{{ room.name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h6><i class="fas fa-map-marker-alt text-danger"></i> 位置</h6>
+                                <p class="mb-0">{{ room.location }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h6><i class="fas fa-users text-success"></i> 容量</h6>
+                                <p class="mb-0">{{ room.capacity }} 人</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <h6><i class="fas fa-check-circle text-info"></i> 状态</h6>
+                                <p class="mb-0">
+                                    {% if room.is_active %}
+                                    <span class="badge bg-success">正常开放</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">暂停使用</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设备设施 -->
+            {% if room.equipment %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tools"></i> 设备设施</h5>
+                </div>
+                <div class="card-body">
+                    {% for equipment in room.equipment|split:"、" %}
+                    <span class="equipment-tag">
+                        <i class="fas fa-check text-success"></i> {{ equipment }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- 详细描述 -->
+            {% if room.description %}
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> 详细介绍</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ room.description }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- 右侧：时间段和预约状态 -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> 时间段安排</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-info-circle"></i> 
+                        以下是今日的时间段安排情况
+                    </p>
+                    
+                    {% for slot in time_slots %}
+                    <div class="time-slot-card mb-3">
+                        <h6 class="mb-2">{{ slot.name }}</h6>
+                        <p class="text-muted mb-2">
+                            <i class="far fa-clock"></i> 
+                            {{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}
+                        </p>
+                        
+                        <!-- 这里可以添加预约状态检查逻辑 -->
+                        <span class="badge bg-success">
+                            <i class="fas fa-check"></i> 可预约
+                        </span>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'bookings:booking_create' room.pk %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> 预约此房间
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 使用须知 -->
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> 使用须知</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i> 请按时到达，逾期不候
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i> 保持安静，不影响他人学习
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i> 爱护公共设施
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success"></i> 离开时请整理座位
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success"></i> 如需取消请提前通知
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 返回按钮 -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'rooms:room_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 返回自习室列表
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 添加一些交互效果
+$(document).ready(function() {
+    // 时间段卡片悬停效果
+    $('.time-slot-card').hover(
+        function() {
+            $(this).addClass('shadow-sm');
+        },
+        function() {
+            $(this).removeClass('shadow-sm');
+        }
+    );
+    
+    // 设备标签点击效果
+    $('.equipment-tag').click(function() {
+        $(this).toggleClass('bg-primary text-white');
+    });
+});
+</script>
+{% endblock %}

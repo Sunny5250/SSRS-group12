@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}预约详情 - 自习室预约系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 0;
+        margin-bottom: 30px;
+    }
+    
+    .status-badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffeaa7;
+    }
+    
+    .status-confirmed {
+        background-color: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+    }
+    
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+    
+    .info-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 预约头部 -->
+<div class="booking-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-calendar-check"></i>
+                    预约详情
+                </h2>
+                <p class="mb-0 opacity-75">
+                    预约编号：#{{ booking.id }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="status-badge status-{{ booking.status }}">
+                    {% if booking.status == 'pending' %}
+                        <i class="fas fa-clock"></i> 待审核
+                    {% elif booking.status == 'confirmed' %}
+                        <i class="fas fa-check"></i> 已确认
+                    {% elif booking.status == 'cancelled' %}
+                        <i class="fas fa-times"></i> 已取消
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- 左侧：预约信息 -->
+        <div class="col-lg-8">
+            <!-- 基本信息卡片 -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> 基本信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-door-open"></i>
+                                </div>                                <div>
+                                    <small class="text-muted">自习室</small>
+                                    <div class="fw-bold">
+                                        {% if booking.room %}
+                                            {{ booking.room.name }}
+                                        {% else %}
+                                            未知房间
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>                                <div>
+                                    <small class="text-muted">位置</small>
+                                    <div class="fw-bold">
+                                        {% if booking.room %}
+                                            {{ booking.room.location }}
+                                        {% else %}
+                                            未知位置
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">预约日期</small>
+                                    <div class="fw-bold">{{ booking.date|date:"Y年m月d日" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">时间段</small>
+                                    <div class="fw-bold">
+                                        {{ booking.time_slot.name }}<br>
+                                        <small>{{ booking.time_slot.start_time|time:"H:i" }} - {{ booking.time_slot.end_time|time:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">参与人数</small>
+                                    <div class="fw-bold">{{ booking.participants }} 人</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon me-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">预约人</small>
+                                    <div class="fw-bold">{{ booking.user.get_full_name|default:booking.user.username }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if booking.purpose %}
+                    <div class="mt-3">
+                        <small class="text-muted">预约目的</small>
+                        <div class="mt-2 p-3 bg-light rounded">
+                            {{ booking.purpose }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 自习室详情卡片 -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building"></i> 自习室详情
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">                        <div class="col-md-3 text-center mb-3">
+                            {% if booking.room and booking.room.image %}
+                                <img src="{{ booking.room.image.url }}" class="img-fluid rounded" alt="{{ booking.room.name }}">
+                            {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h6>
+                                {% if booking.room %}
+                                    {{ booking.room.name }}
+                                {% else %}
+                                    未知房间
+                                {% endif %}
+                            </h6>
+                            <p class="text-muted mb-2">
+                                {% if booking.room %}
+                                    {{ booking.room.description }}
+                                {% else %}
+                                    无描述信息
+                                {% endif %}
+                            </p>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">容量</small>
+                                    <div>
+                                        {% if booking.room %}
+                                            {{ booking.room.capacity }} 人
+                                        {% else %}
+                                            未知
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted">设备</small>
+                                    <div>
+                                        {% if booking.room %}
+                                            {{ booking.room.equipment|default:"暂无" }}
+                                        {% else %}
+                                            未知
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：操作和历史 -->
+        <div class="col-lg-4">
+            <!-- 操作卡片 -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> 操作
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'bookings:booking_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> 返回列表
+                        </a>
+                        
+                        {% if booking.status == 'pending' and booking.user == request.user %}
+                        <a href="{% url 'bookings:booking_cancel' booking.pk %}" 
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('确定要取消这个预约吗？')">
+                            <i class="fas fa-times"></i> 取消预约
+                        </a>
+                        {% endif %}
+                        
+                        {% if request.user.user_type == 'admin' and booking.status == 'pending' %}
+                        <a href="{% url 'bookings:booking_approve' booking.pk %}" 
+                           class="btn btn-success">
+                            <i class="fas fa-check"></i> 审核通过
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 预约历史 -->
+            {% if booking_histories %}
+            <div class="card info-card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history"></i> 操作历史
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for history in booking_histories %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ history.action }}</strong>
+                                    <div class="text-muted small">
+                                        {{ history.operator.get_full_name|default:history.operator.username }}
+                                    </div>
+                                    {% if history.notes %}
+                                    <div class="text-muted small mt-1">
+                                        {{ history.notes }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">
+                                    {{ history.created_at|date:"m-d H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

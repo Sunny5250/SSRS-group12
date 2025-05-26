@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}自习室列表 - 自习室预约系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    .room-card {
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .room-image {
+        height: 200px;
+        object-fit: cover;
+        width: 100%;
+    }
+    
+    .search-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px 0;
+        margin-bottom: 30px;
+    }
+    
+    .capacity-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 123, 255, 0.9);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+    }
+    
+    .room-features {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 搜索区域 -->
+<div class="search-box text-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-search"></i> 查找自习室
+                </h2>                <form method="get" class="d-flex">
+                    <input type="text" 
+                           class="form-control form-control-lg me-2" 
+                           name="search" 
+                           placeholder="搜索自习室名称、位置或描述..."
+                           value="{{ search }}">
+                    <button type="submit" class="btn btn-light btn-lg text-nowrap">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自习室列表 -->
+<div class="container">
+    {% if search %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> 
+        搜索 "{{ search }}" 的结果，共找到 {{ rooms|length }} 个自习室
+        <a href="{% url 'rooms:room_list' %}" class="btn btn-sm btn-outline-info ms-2">清除搜索</a>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        {% for room in rooms %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card room-card h-100">
+                <div class="position-relative">
+                    {% if room.image %}
+                    <img src="{{ room.image.url }}" class="room-image" alt="{{ room.name }}">
+                    {% else %}
+                    <div class="room-image bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <span class="capacity-badge">
+                        <i class="fas fa-users"></i> {{ room.capacity }}人
+                    </span>
+                </div>
+                
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-door-open text-primary"></i> {{ room.name }}
+                    </h5>
+                    
+                    <p class="card-text">
+                        <i class="fas fa-map-marker-alt text-danger"></i> 
+                        <strong>位置：</strong>{{ room.location }}
+                    </p>
+                    
+                    {% if room.description %}
+                    <p class="card-text">{{ room.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    {% if room.equipment %}
+                    <div class="room-features mb-3">
+                        <i class="fas fa-tools"></i> 
+                        <small>{{ room.equipment|truncatewords:8 }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="fas fa-clock"></i> 
+                            {{ room.created_at|date:"Y-m-d" }}
+                        </span>
+                        <div>
+                            <a href="{% url 'rooms:room_detail' room.pk %}" 
+                               class="btn btn-outline-primary btn-sm me-2">
+                                <i class="fas fa-eye"></i> 查看详情
+                            </a>
+                            <a href="{% url 'bookings:booking_create' room.pk %}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-calendar-plus"></i> 立即预约
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">暂无自习室</h4>
+                <p class="text-muted">
+                    {% if search %}
+                    没有找到匹配 "{{ search }}" 的自习室，请尝试其他关键词。
+                    {% else %}
+                    系统中还没有可用的自习室，请稍后再来查看。
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if is_paginated %}
+    <nav aria-label="自习室列表分页">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">首页</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">上一页</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">下一页</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">末页</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
