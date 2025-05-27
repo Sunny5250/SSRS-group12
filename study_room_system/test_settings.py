@@ -22,10 +22,10 @@ CACHES = {
     }
 }
 
-# 禁用邮件发送
+# 禁用邮件发送功能
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
-# 简化日志配置
+# 简化日志的配置
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
