@@ -9,23 +9,23 @@ DATABASES = {
     }
 }
 
-# 禁用调试模式
+# 禁用调试的模式
 DEBUG = False
 
 # 简化密码验证（加速测试）
 AUTH_PASSWORD_VALIDATORS = []
 
-# 禁用缓存
+# 禁用缓存1
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
 
-# 禁用邮件发送
+# 禁用邮件发送功能
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
-# 简化日志配置
+# 简化日志的配置
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
