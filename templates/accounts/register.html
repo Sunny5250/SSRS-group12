@@ -22,6 +22,7 @@
                 
                 <form method="post">
                     {% csrf_token %}
+                    <!-- [TASK-1] 用户名和邮箱输入字段 - ISSUE-101 -->
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="id_username" class="form-label">用户名 *</label>
@@ -39,6 +40,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- [/TASK-1] -->
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
